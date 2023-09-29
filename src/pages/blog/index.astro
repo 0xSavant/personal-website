@@ -54,6 +54,7 @@ const posts = (await getCollection('blog')).sort(
 			.title {
 				margin: 0;
 				color: rgb(var(--black));
+				font-size: 1.5rem;
 				line-height: 1;
 			}
 			.date {
@@ -96,12 +97,12 @@ const posts = (await getCollection('blog')).sort(
         <div class="standard-dialog">
 			<h2 class="center" id="skills">Writings</h2>
 			<section>
-				<ul>
+				<ul class="center">
 					{
 						posts.map((post) => (
 							<li>
 								<a href={`/blog/${post.slug}/`}>
-									<img transition:name={post.data.title} width={620} height={360} src={post.data.heroImage} alt="" />
+									<img transition:name={post.data.title} width={500} height={360} src={post.data.heroImage} alt="" />
 									<h4 class="title">{post.data.title}</h4>
 									<code class="date">
 										<FormattedDate date={post.data.pubDate} />
