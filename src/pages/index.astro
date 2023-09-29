@@ -1,0 +1,51 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Aside from '../components/Aside.astro';
+import Footer from '../components/Footer.astro';
+import Overview from '../components/Overview.astro';
+import Skills from '../components/Skills.astro';
+import Endeavors from '../components/Endeavors.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { getCollection } from 'astro:content';
+import FormattedDate from '../../components/FormattedDate.astro';
+
+import "@sakun/system.css/style.css";
+
+const posts = (await getCollection('blog')).sort(
+	(a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf()
+);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<meta charset="utf-8" />
+  		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	</head>
+	<body ontouchstart="true">
+	<main>
+	<div class="container">
+    <div class="layout">
+      <div class="col col-main">
+        <Aside />
+	</div>
+	  <p></p>
+      <div class="col col-complementary" role="complementary">
+        <div class="standard-dialog">
+			<Overview />
+			<Skills />
+			<Endeavors />
+			<div>
+				<h2 id="recent">Recent Posts</h2>
+				<div style="display: flex">
+					
+				</div>
+			</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+	</body>
+</html>

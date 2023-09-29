@@ -1,0 +1,70 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Aside from '../components/Aside.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
+import "@sakun/system.css/style.css";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<meta charset="utf-8" />
+  		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	</head>
+	<body ontouchstart="true">
+	<main>
+	<div class="container">
+    <div class="layout">
+      <div class="col col-main">
+        <Aside />
+	</div>
+	  <p></p>
+      <div class="col col-complementary" role="complementary">
+        <div class="standard-dialog">
+			<div>
+				<h2 class="center">Projects</h2>
+				<div style="display: flex">
+					<div class="window">
+						<div class="title-bar">
+							<button aria-label="Close" class="close"></button>
+							<h1 class="title">Stockpile<h1>
+							<button aria-label="Resize" class="resize"></button>
+						</div>
+						<div class="details-bar">
+							<span><a href="https://stockpile.pro">website</a></span>
+							<span><a href="https://github.com/StockpileProtocol">github</a></span>
+						</div>
+						<div class="separator"></div>
+						<img src="StockpileFinal.png" style="display: block; margin-right: auto; margin-left: auto;" />
+						<div class="window-pane center">
+							Lightning fast on-chain crowdfunding & quadratic funding, powered by Solana. 
+						</div>
+					</div>
+					<div class="window">
+						<div class="title-bar">
+							<button aria-label="Close" class="close"></button>
+							<h1 class="title">Stockpile<h1>
+							<button aria-label="Resize" class="resize"></button>
+						</div>
+						<div class="details-bar">
+							<span><a href="https://stockpile.pro">website</a></span>
+							<span><a href="https://github.com/StockpileProtocol">github</a></span>
+						</div>
+						<div class="separator"></div>
+						<img src="StockpileFinal.png" style="display: block; margin-right: auto; margin-left: auto;" />
+						<div class="window-pane center">
+							Lightning fast on-chain crowdfunding & quadratic funding, powered by Solana. 
+						</div>
+					</div>
+				</div>
+			</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+	</body>
+</html>
