@@ -7,7 +7,7 @@ import Skills from '../components/Skills.astro';
 import Endeavors from '../components/Endeavors.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 import { getCollection } from 'astro:content';
-import FormattedDate from '../../components/FormattedDate.astro';
+import FormattedDate from '../components/FormattedDate.astro';
 
 import "@sakun/system.css/style.css";
 
@@ -39,7 +39,19 @@ const posts = (await getCollection('blog')).sort(
 			<div>
 				<h2 id="recent">Recent Posts</h2>
 				<div style="display: flex">
-					
+					{
+						posts.slice(0, 1).map((post) => (
+							<li>
+								<a href={`/blog/${post.slug}/`}>
+									<img transition:name={post.data.title} width={500} height={360} src={post.data.heroImage} alt="" />
+									<h4 class="title">{post.data.title}</h4>
+									<code class="date">
+										<FormattedDate date={post.data.pubDate} />
+									</code>
+								</a>
+							</li>
+						))
+					}
 				</div>
 			</div>
         </div>
