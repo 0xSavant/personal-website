@@ -34,7 +34,6 @@ const posts = (await getCollection('blog')).sort(
       <div class="col col-complementary" role="complementary">
         <div class="standard-dialog">
 			<Overview />
-			<Skills />
 			<Endeavors />
 			<div>
 				<h2 id="recent">Recent Posts</h2>
@@ -54,6 +53,7 @@ const posts = (await getCollection('blog')).sort(
 					}
 				</div>
 			</div>
+			<Skills />
         </div>
       </div>
     </div>
