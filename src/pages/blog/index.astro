@@ -52,14 +52,13 @@ const posts = (await getCollection('blog')).sort(
 				display: block;
 			}
 			.title {
-				margin: 0;
+				margin-top: 20px;
+				margin-bottom: 15px;
 				color: rgb(var(--black));
-				font-size: 1.5rem;
+				font-size: 1.25rem;
 				line-height: 1;
 			}
 			.date {
-				margin: 0;
-				margin-top: 0.25rem;
 				color: rgb(var(--gray));
 			}
 			ul li a:hover h4,
@@ -67,7 +66,9 @@ const posts = (await getCollection('blog')).sort(
 				color: rgb(var(--accent));
 			}
 			ul a:hover img {
-				box-shadow: var(--box-shadow);
+				border: 3px;
+				border-style: ridge;
+				border-color: rgba(128, 128, 128, 0.1);
 			}
 			@media (max-width: 720px) {
 				ul {
@@ -95,14 +96,17 @@ const posts = (await getCollection('blog')).sort(
 		<main>
 			<div class="col col-complementary" role="complementary">
         <div class="standard-dialog">
-			<h2 class="center" id="skills">Writings</h2>
+			<div class="center" style="display: flex; gap: 10px; align-items: center; justify-content: center;">
+				<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 32px;"> <path d="M18 2h-2v2h2V2zM4 4h6v2H4v14h14v-6h2v8H2V4h2zm4 8H6v6h6v-2h2v-2h-2v2H8v-4zm4-2h-2v2H8v-2h2V8h2V6h2v2h-2v2zm2-6h2v2h-2V4zm4 0h2v2h2v2h-2v2h-2v2h-2v-2h2V8h2V6h-2V4zm-4 8h2v2h-2v-2z" fill="currentColor"/> </svg>
+				<h2 class="center" id="blog">Blog</h2>
+			</div>
 			<section>
 				<ul class="center">
 					{
 						posts.map((post) => (
 							<li>
 								<a href={`/blog/${post.slug}/`}>
-									<img transition:name={post.data.title} class="image" width={500} height={360} src={post.data.heroImage} alt="" />
+									<img transition:name={post.data.title} class="image" style="object-fit: cover;" width={500} height={360} src={post.data.heroImage} alt="" />
 									<h4 class="title">{post.data.title}</h4>
 									<code class="date">
 										<FormattedDate date={post.data.pubDate} />
