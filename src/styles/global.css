@@ -181,3 +181,13 @@ pre {
     transform: scale(0.8);
   }
 }
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+ 
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
