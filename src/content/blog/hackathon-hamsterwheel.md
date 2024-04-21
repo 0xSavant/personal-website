@@ -20,3 +20,23 @@ Throughout the next year, I'd find myself participating in hackathons every othe
 During this period, I was still doing it for the love of the game. There weren't huge prize pools and a multitude of tracks. These were simple ordeals that were tailored for university students just getting started. This is stage one of the hamsterwheel.
 
 ### ► More Money, More Problems
+
+As I started to delve deeper into Web3, I found myself running faster on the Hackathon Hamsterwheel. Prize pools got bigger, there were more tracks, more sponsors, more opportunities to make it big as a developer. I pounced at these opportunities. What started out as a hobby after school turned into skipping classes to meet the deadlines. 
+
+In hindsight, a shift in the industry (or my view of it) had happened. Hackathons were no longer short events where you'd pump out a cool side project that you could put on your portfolio. Those still existed of course, but they were largely eclipsed by the spectacles. Multi-week affairs with millions in total prize money, and tracks as far as you can scroll. These are what defined the next few years for me.
+
+A key attribute of these new age hackathons is the framing. "Build the next big startup" or some variation of that is generally the message. The judge lineup will generally have at least a few VCs on it, and advertise the possibility of raising a seed round if you win. This is what enamored me, and many others. In today's industry climate, startups are everywhere, and the grind of building one is romanticized. However, people don't always notice the amount of highly valued startups that exist solely to serve other new startups. I'm talking incubators, accelerators, launchpads, many genres of management software, cloud hosting, and more. These have been the real winners. Do you see where I'm going with this?
+
+Hackathons, and their organizers, have become hundred million dollar businesses off of this shift. 
+
+### ► The Definition of Insanity
+
+More on this...
+
+### ► The Message
+
+The point of this article is to highlight a trend I've seen in young developers, including myself. A trend that ultimately leads to burnout, and self-doubt.
+
+While this may seem contradictory to what I've been saying throughout the entire article: you should participate in hackathons if you're a young developer. I say that with a big asterisk however. These events give you ample opportunities to build something cool, improve your skills, get noticed by employers, and earn good prize money. However, it's important to recognize why you're participating in them. 
+
+The point of this article is to highlight a trend I've seen in young developers, including myself. A trend that ultimately leads to burnout, and self-doubt. Reflect on your goals for each hackathon, be realistic in your expectations, and don't be afraid to take a step back. 
