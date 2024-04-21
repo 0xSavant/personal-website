@@ -41,7 +41,7 @@ By this time, I had already zeroed in on one project that I was building. It was
 
 I didn't place in a single one. I didn't even get an honorable mention. Each snub would motivate me further to continue building, continue iterating, and drive myself further into burnout territory. All of this while continuing to feed into the narrative that my next big win was just around the corner.
 
-While the early stages of the hamsterwheel draw you in, the final stages leave you spinning the wheel until it ejects you.
+This type of behavior is incentivized by many hackathons and their organizers. The ability to submit existing builds tends to disincentivize people to build something new. I can't blame organizers for this, as they want to see projects continue to build and iterate, but it's an uphill battle to compete with another team who has a two month head start. In all, it continues to perpetuate the hamsterwheel.
 
 ### ► The Message
 
