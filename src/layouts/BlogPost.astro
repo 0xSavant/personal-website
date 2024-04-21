@@ -73,7 +73,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
         <div class="standard-dialog" style="margin-bottom: 20px;">
 			<article>
 				<div class="hero-image">
-					{heroImage && <img transition:name={title} width={1020} height={510} src={heroImage} style="box-shadow: none; border: 1px; border-style: ridge; border-color: rgba(128, 128, 128, 0.1);" alt="" />}
+					{heroImage && <img transition:name={title} width={1020} height={510} src={heroImage} style="box-shadow: none; border: 1px; border-style: ridge; border-color: rgba(128, 128, 128, 0.1); object-fit: cover;" alt="" />}
 				</div>
 				<div class="prose">
 					<div class="title">

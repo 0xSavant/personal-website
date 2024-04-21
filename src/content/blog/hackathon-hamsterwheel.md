@@ -2,7 +2,7 @@
 title: 'The Hackathon Hamsterwheel'
 description: 'Outlining a common pattern among serial hackathoners.'
 pubDate: 'April 20 2024'
-heroImage: '/hackathonimage.webp'
+heroImage: '/hackathonhero.jpeg'
 ---
 
 Hackathons are some of the best events the tech industry has to offer. Where else can you meet new people, build awesome projects, and drink copious amounts of coffee while your mind crumbles into madness?
