@@ -1,0 +1,16 @@
+---
+import "../styles/global.css";
+import { ViewTransitions } from "astro:transitions";
+
+const { id, open } = Astro.props;
+---
+
+<button onclick={`window.${id}.showModal()`} aria-label="Resize" class="resize">{open}</button>
+
+<dialog id={`${id}`}>
+  <slot name="main" />
+  <form method="dialog">
+    <slot name="close" />
+  </form>
+</dialog>
+<ViewTransitions />

@@ -15,7 +15,7 @@ That being said, I've noticed something peculiar over the years. A phenomenon ch
 
 My first experience at a hackathon was my sophomore year of college. Every year the engineering department put on a 24 hour in-person competition, and it was a blast. I worked with two other people who I'd never met before, and we're all still friends to this day. We ended up taking home a prize, and it was one of the best feelings I had felt to date. I was hooked.
 
-Throughout the next year, I'd find myself participating in hackathons every other month. These were generally online, since those are easier to come by. I'd get a team of random people from the event's discord, drum up an idea, and maybe get a finished submission out. This was the trough of disillusionment on full display. I tried desperately to build ideas that I was sure would be winners, but coming up short time and time again. One would say, a skill issue.
+Throughout the next year, I'd find myself participating in hackathons every other month. These were generally online, since those are easier to come by. I'd get a team of random people from the event's discord, drum up an idea, and maybe get a finished submission out. This was the trough of disillusionment on full display. I tried desperately to build ideas that I was sure would be winners, but came up short time and time again. One would say, a skill issue.
 
 During this period, I was still doing it for the love of the game. There weren't huge prize pools and a multitude of tracks. These were simple ordeals that were tailored for university students just getting started. This is stage one of the hamsterwheel.
 

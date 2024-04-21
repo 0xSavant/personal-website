@@ -1,0 +1,70 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Aside from '../components/Aside.astro';
+import Overview from '../components/Overview.astro';
+import Skills from '../components/Skills.astro';
+import Endeavors from '../components/Endeavors.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { getCollection } from 'astro:content';
+import FormattedDate from '../components/FormattedDate.astro';
+
+import "@sakun/system.css/style.css";
+
+const posts = (await getCollection('blog')).sort(
+	(a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf()
+);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<meta charset="utf-8" />
+  		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+		<style>
+			ul li {
+				width: calc(50% - 1rem);
+			}
+			ul li * {
+				text-decoration: none;
+				transition: 0.2s ease;
+			}
+			ul li img {
+				margin-bottom: 0.5rem;
+				border-radius: 12px;
+			}
+			ul li a {
+				display: block;
+			}
+		</style>
+	</head>
+	<body ontouchstart="true">
+	<main>
+	<div class="container">
+    <div class="layout">
+      <div class="col col-main">
+        <Aside />
+	</div>
+	  <p></p>
+      <div class="col col-complementary" role="complementary">
+        <div class="standard-dialog" style="margin-bottom: 20px; height: 95%;">
+			<div style="width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-top: 10rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" style="width: 64px;"> <path d="M6 2h2v2H6V2Zm4 9h4v2h-4v-2Zm4 4h-4v2h4v-2Z"/> <path d="M16 4h-2v2h-4V4H8v2H6v3H4V7H2v2h2v2h2v2H2v2h4v2H4v2H2v2h2v-2h2v3h12v-3h2v2h2v-2h-2v-2h-2v-2h4v-2h-4v-2h2V9h2V7h-2v2h-2V6h-2V4ZM8 20V8h8v12H8Zm8-16V2h2v2h-2Z"/> </svg>
+                <h1 style="font-size: 2rem;">An error has occurred.</h1>
+                <label>We could not find the page you are looking for.</label>
+                <div style="margin-top: 25px; display: flex; gap: 15px;">
+                    <a href="/">
+                        <button class="btn">Return To Home</button>
+                    </a>
+                    <a href="/blog">
+                        <button class="btn">View Blog</button>
+                    </a>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+	</body>
+</html>
