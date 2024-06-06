@@ -15,6 +15,9 @@
     "@astrojs/sitemap": "^3.0.0",
     "@sakun/system.css": "^0.1.11",
     "astro": "^3.1.4",
-    "pixelarticons": "^1.8.0"
+    "katex": "^0.16.10",
+    "pixelarticons": "^1.8.0",
+    "rehype-mathjax": "^6.0.0",
+    "remark-math": "^6.0.0"
   }
 }

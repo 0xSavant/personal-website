@@ -1,0 +1,99 @@
+---
+title: 'Optimizing Stockpile'
+description: 'Understanding pitfalls and optimizations in Stockpile v2.'
+pubDate: 'June 4 2024'
+heroImage: '/rewritingstockpile.jpeg'
+---
+
+Over 6 months ago, I launched Stockpile v2. This was both a major improvement on the crowdfunding vaults in v1, and the first quadratic funding program to hit Solana mainnet. I consider it a crowning achievement in my career to date. However, it had many key bottlenecks that hindered it from adoption further than glorified demos and trial runs. In the opinion of many, it's an infrastructure piece that could be colossally beneficial to the broader ecosystem given a better designed implementation. It's for this reason that I've wanted to revisit it, and correct these bottlenecks to the best of my ability. In this post, I seek to outline these pitfalls, and propose my solutions in this subsequent rewrite.
+
+*Throughout the course of this article, I'll assume you have a base understanding of Solana and Rust. Additionally, I'll assume you understand what quadratic funding is.*
+
+## ► Understanding Compute Usage
+Back in 2021, writing programs on Solana was relatively simple. This changed in April of this year, when things got far more complicated. From a time where programs could be very unoptimized and bloated, to a time where every compute unit matters.
+
+This is pretty simple to understand, the more your program does, the more compute it will use.
+
+As we know, a transaction is capped at 1.4m CUs. This isn't an issue for 99% of transactions as they will seldom use this much, and need to request it if they do. So why am I harping on this?
+
+To understand, let's look at the formula for quadratic funding:
+
+<Latex formula="F(P) = \left( \sum_{i=1}^{n} \sqrt{c_i} \right)^2"/>
+
+- <InlineLatex formula="F(P)" /> is the total amount of funding allocated to the project. 
+- <InlineLatex formula="c_i" /> is the contribution of the <InlineLatex formula="i" />-th contributor. 
+- <InlineLatex formula="n" /> is the total number of contributors.
+
+Further, let's represent this in code:
+
+```rust
+
+pub fn calc_qf(&mut self) -> Result<()> {
+	// For all projects in the set
+	let (vote_count, sum_of_squared_votes_all_projects) = {
+		let mut vote_count_mut: HashMap<Pubkey, f64> = HashMap::new();
+		let mut sum_squared_votes_all_projects: f64 = 0.0;
+	
+		for project in self.project_shares.iter_mut() {
+			let total_square_root_votes_usd: f64 = 
+				calc_total_square_root_votes(
+					&project.share_data.votes,
+				)?;
+					
+			let sum_of_roots_squared = 
+				total_square_root_votes_usd.powi(2);
+
+			vote_count_mut.insert(
+				project.project_key, 
+				sum_of_roots_squared
+			);
+				
+			sum_squared_votes_all_projects += sum_of_roots_squared;
+		}
+
+		(vote_count_mut, sum_squared_votes_all_projects)
+	}
+
+	// To determine each project's proportion
+	for project in self.project_shares.iter_mut() {
+		let updated_share = 
+			match vote_count.get(&project.project_key) {
+				Some(vote_count) => 
+					vote_count / sum_of_squared_votes_all_projects,
+				None => 
+					return Err(Error::Error.into()),
+			};
+				
+		project.share_data.share = updated_share;
+	}
+}
+
+```
+
+If you're familiar with compute unit usage on Solana, or code performance in general, you can see a clear problem here: *this runs two different loops*. Not a major issue if we're talking about a minimal set, but this function runs at O(n * m), far from ideal in the compute-constrained environment of the SVM. Actually, "far from ideal" is a very generous way to put it. After approximately 150-200 total votes, assuming six participants in the round, no more votes could be cast in the pool because you would run out of compute units available in a transaction to rebalance the proportions.
+
+This would happen because the source of truth was the pool's master account, and the proportions would be rebalanced after every contribution. Each user's contribution (given it was a vote) would incur escalating compute usage until the CU limit was hit. In terms of the v2 implementation, this was the biggest bottleneck.
+
+*So, how do we solve this?*
+
+This will always happen if you try to calculate this on-chain, assuming the set grows large enough. The answer is you don't.
+
+Instead, we store the vote data on-chain, and calculate the proportions off-chain. This is a compromise between verifiability and performance. Anyone can reconcile the vote data and hopefully come to the same number that I do.
+
+Shutting down the idea of calculating on-chain is a bit of a cop-out in my opinion though. There are ways we can at least optimize the calculation for better performance, and control when it's called so end users don't need to deal with the ramifications. I theorize this can be done via a separate "verifier" program that takes the vote data accounts as inputs, and runs the above calculation in BPF assembly to save as many CUs as possible. With this, someone can further verify that values displayed on a client are true to the on-chain data.
+
+## ► Vote Tables
+That brings us to the other bottleneck found in Stockpile v2: *data storage*. Previously, all of the vote data was stored in the current pool's master account. This is one of end of the spectrum (the one we don't want to be on), with the other being creating accounts for every vote. The problem with the v2 implementation is account size. A PDA on Solana can only be max 10MB, and this limit could certainly be hit given a popular enough grant round. However, the more pressing issue was account reallocation. The initial size of a pool account was around 2761 bytes, a hefty amount that accounted for 10 participants and 20 votes. For most cases, this will be reallocated, pushing extra cost on to the user.
+
+Max account size would present a bottleneck with round sizes, but extra reallocation fees isn't a critical issue on its own. However, there's room to change this implementation to fit a middle ground between cramming all of the data into one account, and creating separate accounts for each vote. This middle ground is called *Vote Tables*.
+
+Vote Tables are accounts indexed to a participant that store the vote data. Each one contains the key of the current pool, the participant it's tied to, its index, its bump, and a BTreeMap containing the vote data. These hold a max of 128 entries (or votes), after which the index is incremented, and a new one is created. Each participant can have at most 255 tables, meaning each participant in a round can have at most 32,640 votes. 
+
+This is far from perfect. Ideally, there is no bound to how many votes a project can get. The 128 entry limit could certainly be increased to 255, allowing for 65,025 entries, but this would incur greater fees to initialize. At this point, we're approaching the previous end of the spectrum.
+
+<hr></hr>
+
+If you'd like, feel free to follow my progress on Twitter and in the Stockpile Lite repo:
+
+- https://x.com/joeymeere
+- https://github.com/StockpileLabs/stockpile-lite 
