@@ -1,0 +1,168 @@
+---
+title: 'Optimizing Stockpile'
+description: 'Understanding pitfalls and optimizations in Stockpile v2.'
+pubDate: 'June 4 2024'
+heroImage: '/rewritingstockpile.jpeg'
+---
+
+Over 6 months ago, I launched Stockpile v2. This was both a major improvement on the crowdfunding vaults in v1, and the first quadratic funding program to hit Solana mainnet. I consider it a crowning achievement in my career to date. However, it had many key bottlenecks that hindered it from adoption further than glorified demos and trial runs. In the opinion of many, it's an infrastructure piece that could be colossally beneficial to the broader ecosystem given a better designed implementation. It's for this reason that I've wanted to revisit it, and correct these bottlenecks to the best of my ability. In this post, I seek to outline these pitfalls, and propose my solutions in this subsequent rewrite.
+
+*Throughout the course of this article, I'll assume you have a base understanding of Solana and Rust. Additionally, I'll assume you understand what quadratic funding is.*
+
+## ► The Woes of Anchor
+Back in 2021, writing programs on Solana was relatively simple. This changed in April of this year, 
+when things got far more complicated. From a time where programs could be very unoptimized and bloated, 
+to a time where every compute unit matters.
+
+This is pretty simple to understand, the more your program does, the more compute it will use.
+
+Enter the Anchor Framework. Anchor changed the landscape of Solana development by abstracting the difficulties
+of building in native Rust, providing interfaces for account validation, serialization, deserialization, client-side interaction
+and more. To this day, many would say it has enabled a multitude of developers (including myself) to get started faster, and stick around.
+Thanks to Anchor, building programs on Solana is far easier than otherwise, and for that I am grateful to Armani for creating it, and
+Acheron for maintaining it. Anchor is a net good, but this article isn't going to be singing its praises after this point.
+
+Anchor cultivated a core of developers building poorly optimized programs without even realizing it. This isn't an issue on 
+its own (see the above). However, the framework introduces a mountain of overhead and space complexity just by nature of using it.
+Its abstractions come out of the box, whether you need them or not. The SVM is a compute constrained environment, and any uneeded abstractions
+that can be shed will be to our benefit. For most functionality in Stockpile, hyper-optimization isn't needed to this point, but might as well 
+save the CUs. In the critical parts where we do need it, writing in native Rust will give us some breathing room.
+
+## ► Vote Tables
+The first, and most obvious bottleneck found in Stockpile v2 is *data storage*. Previously, all of the vote data was stored in the current pool's master account. 
+This is one of end of the spectrum (the one we don't want to be on), with the other being creating accounts for every vote. The problems with the v2 implementation are twofold: write-locks and account size. 
+A PDA on Solana can only be max 10MB, and this limit could certainly be hit given a popular enough grant round. However, the more pressing issue was account reallocation. 
+The initial size of a pool account was around 2761 bytes, a hefty amount that accounted for 10 participants and 20 votes. For most cases, this will be reallocated, pushing extra cost on to the user.
+
+Max account size would present a bottleneck with round sizes, but extra reallocation fees isn't a critical issue on its own. However, there's room to change this implementation 
+to fit a middle ground between cramming all of the data into one account, and creating separate accounts for each vote. This middle ground is called *Vote Tables*.
+
+Vote Tables are accounts indexed to a participant that store the vote data. Each one contains the key of the current pool, the participant it's tied to, its index, its bump, 
+and a BTreeMap containing the vote data. These hold a max of 128 entries (or votes), after which the index is incremented, and a new one is created. Each participant can have at most 255 tables, 
+'meaning each participant in a round can have at most 32,640 votes. 
+
+This is far from perfect. Ideally, there is no bound to how many votes a project can get. The 128 entry limit could certainly be increased to 255, allowing for 65,025 entries, but this 
+would incur greater fees to initialize. At this point, we're approaching the previous end of the spectrum.
+
+The reason for this design choice will become clear in the next section.
+
+## ► The Compute Problem
+The most pressing issue with the original quadratic funding implementation is compute usage.
+
+As we know, a transaction is capped at 1.4m CUs. This isn't an issue for 99% of transactions as they will seldom use this much, 
+and need to request it if they do. So why am I harping on this?
+
+Enter Quadratic Funding. In short, quadratic funding is an efficient method for distributing resources (mainly monetary)
+that uses crowdfunding to reflect the will of a large base of stakeholders. In this model, resources are skewed towards
+candidates that recieve horozontal support (more voters) rather than vertical (more money). QF is typically conducted in "rounds"
+that are time bound, involve x number of participants, and have $m of capital available. Doing this on-chain was the key unlock for 
+Stockpile with the v2 program.
+
+To understand further, let's look at the formula for quadratic funding:
+
+<Latex formula="F(P) = \left( \sum_{i=1}^{n} \sqrt{c_i} \right)^2"/>
+
+- <InlineLatex formula="F(P)" /> is the total amount of funding allocated to the project. 
+- <InlineLatex formula="c_i" /> is the contribution of the <InlineLatex formula="i" />-th contributor. 
+- <InlineLatex formula="n" /> is the total number of contributors.
+
+Further, let's represent this in code:
+
+```rust
+
+pub fn calc_qf(&mut self) -> Result<()> {
+	// For all projects in the set
+	let (vote_count, sum_of_squared_votes_all_projects) = {
+		let mut vote_count_mut: HashMap<Pubkey, f64> = HashMap::new();
+		let mut sum_squared_votes_all_projects: f64 = 0.0;
+	
+		for project in self.project_shares.iter_mut() {
+			let total_square_root_votes_usd: f64 = 
+				calc_total_square_root_votes(
+					&project.share_data.votes,
+				)?;
+					
+			let sum_of_roots_squared = 
+				total_square_root_votes_usd.powi(2);
+
+			vote_count_mut.insert(
+				project.project_key, 
+				sum_of_roots_squared
+			);
+				
+			sum_squared_votes_all_projects += sum_of_roots_squared;
+		}
+
+		(vote_count_mut, sum_squared_votes_all_projects)
+	}
+
+	// To determine each project's proportion
+	for project in self.project_shares.iter_mut() {
+		let updated_share = 
+			match vote_count.get(&project.project_key) {
+				Some(vote_count) => 
+					vote_count / sum_of_squared_votes_all_projects,
+				None => 
+					return Err(Error::Error.into()),
+			};
+				
+		project.share_data.share = updated_share;
+	}
+}
+
+```
+
+If you're familiar with compute unit usage on Solana, or code performance in general, you can see a clear problem here:
+*this runs two different loops*. Not a major issue if we're talking about a minimal set, but this function runs at O(n * m),
+far from ideal in the compute-constrained environment of the SVM. Actually, "far from ideal" is a very generous way to put it.
+After approximately 150-200 total votes, assuming six participants in the round, no more votes could be cast in the pool
+because you would run out of compute units available in a transaction to rebalance the proportions.
+
+This would happen because the source of truth was the pool's master account, and the proportions would be rebalanced after every contribution. Each user's contribution (given it was a vote) would incur escalating compute usage until the CU limit was hit. In terms of the v2 implementation, this was the biggest bottleneck.
+
+*So, how do we solve this?*
+
+This will always happen if you try to calculate this on-chain in the way we did, assuming the set grows large enough. The answer is you get creative.
+
+Instead, we use vote tables, and calculate the proportions off-chain when we need them over the course of the round (UI state changes). 
+This is a compromise between verifiability and performance. Anyone can reconcile the vote tables via their indicies and hopefully come to the same number that I do.
+
+Shutting down the idea of calculating on-chain is a bit of a cop-out in my opinion though. There are ways we can at least optimize the calculation for 
+better performance, and control when it's called so end users don't need to deal with the ramifications. I theorize this can be done via a separate "verifier"
+program that takes the vote table accounts as inputs, and runs the above calculation in BPF assembly to save as many CUs as possible. With this, someone can further 
+verify that values displayed on a client are true to the on-chain data. This is over the course of a round, so at any point someone can pull vote data and run the verification.
+This won't ship with the initial implementation, so what do we do once a round is finished, and funds need to be distributed?
+
+This brings us to the second solution. Break it up into chunks! Writing in native Rust is helpful here, because if Anchor is used then we need to use much smaller vote tables.
+With 128 entry vote tables, we can simply calculate the sum of square roots for the single set, incrementally doing this for every vote table. Once we've hit the current index
+of the participant in question, we know that we've accounted for all vote tables, and can subsequently square the result and move on to the next participant.
+With this approach, we can break up the calculation across multiple instructions and multiple transactions if needed, thereby providing a workaround to the compute limit.
+
+## ► Bring Your Own Sybil
+Perhaps the hardest problem with quadratic funding is the concept or sybil prevention,
+or more realistically, sybil resistance. Solving this is a constant balance between
+effectiveness, and anonymity. Most methods are somewhat invasive, requiring things like combing someones on-chain history,
+or outright KYC. The former is somewhat invasive, somewhat effective, and tends to preserve anonymity.
+KYC is invasive, does not respect anonymity, but is highly effective. We opted to use a solution called Civic Pass out of the box
+in v2. This wasn't full KYC, but required a facial scan to prove you were a unique person. I'd rate this
+as highly effective, but not anonymity respecting. However, besides UX challenges, this worked at preventing sybil attacks.
+
+That being said, we could've done better, and later on we did (to an extent). As the platform and protocol matured,
+we were able to manually verify high-impact community contributors and their wallets, allowing us to use a relayer system
+to bypass protocol checks and clear their vote. The relayer involved an optional signer in the protocol that, if included, 
+triggered the bypass. Secondary to this was an API endpoint that secured the key, and would check for their verification status in
+our database. If they were verified, the relayer would partial sign the transaction and send it back to the client for processing.
+I'm fully sold on this method, as it requires a fair bit of upfront work in terms of infrastructure and verifying people.
+
+Part of the new implementation being minimal and unopinionated is leaving the choice of a sybil resistance system
+up to the user. This means the ability to plug-in your own system if you'd like, use a relayer, or any other method. How is this done?
+
+First, we represent strategies as an enum. You can Out of the box, we support the two previous methods. An initializer who wants to use a relayer specifies an array of possible relayer keys
+(so they can rotate if needed), and with Civic . For custom strategies, we use a similar approach to Nifty Asset, and represent custom strategies as serialized instructions.
+
+<hr></hr>
+
+If you'd like, feel free to follow my progress on Twitter and in the Stockpile Lite repo:
+
+- https://x.com/joeymeere
+- https://github.com/StockpileLabs/stockpile-lite 
