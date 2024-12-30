@@ -30,7 +30,7 @@ save the CUs. In the critical parts where we do need it, writing in native Rust 
 
 ## ► Vote Tables
 The first, and most obvious bottleneck found in Stockpile v2 is *data storage*. Previously, all of the vote data was stored in the current pool's master account. 
-This is one of end of the spectrum (the one we don't want to be on), with the other being creating accounts for every vote. The problems with the v2 implementation are twofold: write-locks and account size. 
+This is one end of the spectrum (the one we don't want to be on), with the other being creating accounts for every vote. The problems with the v2 implementation are twofold: write-locks and account size. 
 A PDA on Solana can only be max 10MB, and this limit could certainly be hit given a popular enough grant round. However, the more pressing issue was account reallocation. 
 The initial size of a pool account was around 2761 bytes, a hefty amount that accounted for 10 participants and 20 votes. For most cases, this will be reallocated, pushing extra cost on to the user.
 
@@ -139,7 +139,7 @@ of the participant in question, we know that we've accounted for all vote tables
 With this approach, we can break up the calculation across multiple instructions and multiple transactions if needed, thereby providing a workaround to the compute limit.
 
 ## ► Bring Your Own Sybil
-Perhaps the hardest problem with quadratic funding is the concept or sybil prevention,
+Perhaps the hardest problem with quadratic funding is the concept of sybil prevention,
 or more realistically, sybil resistance. Solving this is a constant balance between
 effectiveness, and anonymity. Most methods are somewhat invasive, requiring things like combing someones on-chain history,
 or outright KYC. The former is somewhat invasive, somewhat effective, and tends to preserve anonymity.
@@ -158,7 +158,9 @@ Part of the new implementation being minimal and unopinionated is leaving the ch
 up to the user. This means the ability to plug-in your own system if you'd like, use a relayer, or any other method. How is this done?
 
 First, we represent strategies as an enum. You can Out of the box, we support the two previous methods. An initializer who wants to use a relayer specifies an array of possible relayer keys
-(so they can rotate if needed), and with Civic . For custom strategies, we use a similar approach to Nifty Asset, and represent custom strategies as serialized instructions.
+(so they can rotate if needed). For custom strategies, we use a similar approach to Nifty Asset, and represent custom strategies as serialized instructions.
+
+
 
 <hr></hr>
 
